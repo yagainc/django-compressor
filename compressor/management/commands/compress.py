@@ -77,7 +77,8 @@ class Command(NoArgsCommand):
             from django.template import engines
             template_source_loaders = []
             for e in engines.all():
-                template_source_loaders.extend(e.engine.get_template_loaders(e.engine.loaders))
+                if hasattr(e, 'engine'):
+                    template_source_loaders.extend(e.engine.get_template_loaders(e.engine.loaders))
         loaders = []
         # If template loader is CachedTemplateLoader, return the loaders
         # that it wraps around. So if we have
