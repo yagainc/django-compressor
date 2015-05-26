@@ -78,7 +78,9 @@ class Command(NoArgsCommand):
             template_source_loaders = []
             for e in engines.all():
                 if hasattr(e, 'engine'):
-                    template_source_loaders.extend(e.engine.get_template_loaders(e.engine.loaders))
+                    template_source_loaders.extend(
+                        e.engine.get_template_loaders(e.engine.loaders)
+                    )
         loaders = []
         # If template loader is CachedTemplateLoader, return the loaders
         # that it wraps around. So if we have
@@ -160,7 +162,9 @@ class Command(NoArgsCommand):
         if engine == 'jinja2' and django.VERSION >= (1, 8):
             env = settings.COMPRESS_JINJA2_GET_ENVIRONMENT()
             templates.union([env.loader.get_source(env, template)[1] for template
-                             in env.list_templates(filter_func=lambda path: os.path.splitext(path)[-1] in extensions)])
+                             in env.list_templates(
+                    filter_func=lambda path: os.path.splitext(path)[-1] in
+                                             extensions)])
 
         if not templates:
             raise OfflineGenerationError("No templates found. Make sure your "
