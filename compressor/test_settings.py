@@ -54,3 +54,20 @@ PASSWORD_HASHERS = (
 )
 
 MIDDLEWARE_CLASSES = []
+
+if django.VERSION >= (1, 8):
+
+    TEMPLATES = [
+        {
+            "BACKEND": "django.template.backends.django.DjangoTemplates",
+            "APP_DIRS": True,
+            "DIRS": TEMPLATE_DIRS,
+        },
+        {
+            "BACKEND": "django.template.backends.jinja2.Jinja2",
+            "APP_DIRS": True,
+            "DIRS": [
+                os.path.join(TEST_DIR, 'test_templates_jinja2'),
+            ]
+        },
+    ]

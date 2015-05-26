@@ -62,8 +62,26 @@ class OfflineTestCaseMixin(object):
             'COMPRESS_OFFLINE': True
         }
 
+        if django.VERSION >= (1, 8):
+            override_settings['TEMPLATES'] = [
+                {
+                    "BACKEND": "django.template.backends.django.DjangoTemplates",
+                    "APP_DIRS": True,
+                    "DIRS": override_settings['TEMPLATE_DIRS'],
+                },
+            ]
+
         if "jinja2" in self.engines:
             override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"] = lambda: self._get_jinja2_env()
+
+            if django.VERSION >= (1, 8):
+                override_settings['TEMPLATES'] += [
+                    {
+                        "BACKEND": "django.template.backends.jinja2.Jinja2",
+                        "APP_DIRS": True,
+                        "DIRS": override_settings['TEMPLATE_DIRS'],
+                    },
+                ]
 
         self.override_settings = self.settings(**override_settings)
         self.override_settings.__enter__()
