@@ -338,8 +338,7 @@ class Compressor(object):
 
         self.context['compressed'].update(context or {})
         self.context['compressed'].update(self.extra_context)
-        final_context = Context(self.context)
         post_compress.send(sender=self.__class__, type=self.type,
-                           mode=mode, context=final_context)
+                           mode=mode, context=self.context)
         template_name = self.get_template_name(mode)
-        return render_to_string(template_name, context_instance=final_context)
+        return render_to_string(template_name, context=self.context)
