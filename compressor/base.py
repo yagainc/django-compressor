@@ -3,7 +3,6 @@ import os
 import codecs
 
 from django.core.files.base import ContentFile
-from django.template import Context
 from django.template.loader import render_to_string
 try:
     from importlib import import_module
