@@ -83,6 +83,11 @@ if django.VERSION >= (1, 8):
         },
     ]
 
+    def COMPRESS_JINJA2_GET_ENVIRONMENT():
+        from django.template import engines
+
+        return engines['jinja2'].env
+
 
 def jinja2_environment(**options):
     import jinja2

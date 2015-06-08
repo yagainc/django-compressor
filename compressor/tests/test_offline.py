@@ -1,4 +1,5 @@
 from __future__ import with_statement, unicode_literals
+from copy import deepcopy
 import io
 import os
 import sys
@@ -63,43 +64,13 @@ class OfflineTestCaseMixin(object):
         }
 
         if django.VERSION >= (1, 8):
-            override_settings['TEMPLATES'] = [
-                {
-                    "BACKEND": "django.template.backends.django.DjangoTemplates",
-                    "APP_DIRS": True,
-                    "DIRS": override_settings['TEMPLATE_DIRS'],
-                },
-            ]
+            tempaltes_settings = deepcopy(settings.TEMPLATES)
+            for template_backend in tempaltes_settings:
+                template_backend['DIRS'] = override_settings['TEMPLATE_DIRS']
+            override_settings['TEMPLATES'] = tempaltes_settings
 
-        if "jinja2" in self.engines:
-            if django.VERSION < (1, 8):
-                override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"] = lambda: self._get_jinja2_env()
-            else:
-                override_settings['TEMPLATES'] += [
-                    {
-                        "BACKEND": "django.template.backends.jinja2.Jinja2",
-                        "APP_DIRS": True,
-                        "DIRS": override_settings['TEMPLATE_DIRS'],
-                        "OPTIONS": {
-                            "autoescape": False,
-                            "environment": "compressor.test_settings.jinja2_environment",
-                            "extensions": [
-                                # Extensions needed for the test cases only.
-                                "compressor.offline.jinja2.SpacelessExtension",
-                                "compressor.contrib.jinja2ext.CompressorExtension",
-                                "jinja2.ext.with_",
-                                "jinja2.ext.do",
-                            ]
-                        }
-                    },
-                ]
-
-                def _get_jinja_env():
-                    from django.template import engines
-
-                    return engines['jinja2'].env
-
-                override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"] = _get_jinja_env
+        elif "jinja2" in self.engines:  # django < 1.8 and is using jinja2 as offline compression engine
+            override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"] = lambda: self._get_jinja2_env()
 
         self.override_settings = self.settings(**override_settings)
         self.override_settings.__enter__()
@@ -111,7 +82,7 @@ class OfflineTestCaseMixin(object):
                 self.template = Template(file.read())
 
         if "jinja2" in self.engines:
-            jinja2_env = override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"]()
+            jinja2_env = settings.COMPRESS_JINJA2_GET_ENVIRONMENT()
             self.template_path_jinja2 = os.path.join(jinja2_template_dir, self.template_name)
 
             with io.open(self.template_path_jinja2, encoding=settings.FILE_CHARSET) as file:
