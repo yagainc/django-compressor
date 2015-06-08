@@ -72,16 +72,34 @@ class OfflineTestCaseMixin(object):
             ]
 
         if "jinja2" in self.engines:
-            override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"] = lambda: self._get_jinja2_env()
-
-            if django.VERSION >= (1, 8):
+            if django.VERSION < (1, 8):
+                override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"] = lambda: self._get_jinja2_env()
+            else:
                 override_settings['TEMPLATES'] += [
                     {
                         "BACKEND": "django.template.backends.jinja2.Jinja2",
                         "APP_DIRS": True,
                         "DIRS": override_settings['TEMPLATE_DIRS'],
+                        "OPTIONS": {
+                            "autoescape": False,
+                            "environment": "compressor.test_settings.jinja2_environment",
+                            "extensions": [
+                                # Extensions needed for the test cases only.
+                                "compressor.offline.jinja2.SpacelessExtension",
+                                "compressor.contrib.jinja2ext.CompressorExtension",
+                                "jinja2.ext.with_",
+                                "jinja2.ext.do",
+                            ]
+                        }
                     },
                 ]
+
+                def _get_jinja_env():
+                    from django.template import engines
+
+                    return engines['jinja2'].env
+
+                override_settings["COMPRESS_JINJA2_GET_ENVIRONMENT"] = _get_jinja_env
 
         self.override_settings = self.settings(**override_settings)
         self.override_settings.__enter__()

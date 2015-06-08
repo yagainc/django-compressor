@@ -68,6 +68,27 @@ if django.VERSION >= (1, 8):
             "APP_DIRS": True,
             "DIRS": [
                 os.path.join(TEST_DIR, 'test_templates_jinja2'),
-            ]
+            ],
+            "OPTIONS": {
+                "environment": "compressor.test_settings.jinja2_environment",
+                "autoescape": False,
+                "extensions": [
+                    # Extensions needed for the test cases only.
+                    "compressor.offline.jinja2.SpacelessExtension",
+                    "compressor.contrib.jinja2ext.CompressorExtension",
+                    "jinja2.ext.with_",
+                    "jinja2.ext.do",
+                ]
+            }
         },
     ]
+
+
+def jinja2_environment(**options):
+    import jinja2
+    from compressor.offline.jinja2 import url_for
+
+    env = jinja2.Environment(**options)
+    env.globals['url_for'] = url_for
+
+    return env
