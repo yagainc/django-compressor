@@ -131,23 +131,25 @@ class Command(NoArgsCommand):
             raise OfflineGenerationError("No template loaders defined. You "
                                          "must set TEMPLATE_LOADERS in your "
                                          "settings.")
+
+        engine = options.get('engine', 'django')
+
         paths = set()
-        for loader in self.get_loaders():
-            try:
-                module = import_module(loader.__module__)
-                get_template_sources = getattr(module,
-                    'get_template_sources', None)
-                if get_template_sources is None:
-                    get_template_sources = loader.get_template_sources
-                paths.update(list(get_template_sources('')))
-            except (ImportError, AttributeError, TypeError):
-                # Yeah, this didn't work out so well, let's move on
-                pass
+        if engine != 'jinja2':
+            for loader in self.get_loaders():
+                try:
+                    module = import_module(loader.__module__)
+                    get_template_sources = getattr(module,
+                        'get_template_sources', None)
+                    if get_template_sources is None:
+                        get_template_sources = loader.get_template_sources
+                    paths.update(list(get_template_sources('')))
+                except (ImportError, AttributeError, TypeError):
+                    # Yeah, this didn't work out so well, let's move on
+                    pass
 
         if paths and verbosity > 1:
             log.write("Considering paths:\n\t" + "\n\t".join(paths) + "\n")
-
-        engine = options.get("engine", "django")
 
         # Find templates from paths collected by django's template loaders
         templates = set()
